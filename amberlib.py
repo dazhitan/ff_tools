@@ -67,7 +67,6 @@ class AmberLib():
                 resi_params = self.atomspertinfo_dict[resname]
                 for _, row in resi_params.iterrows():
                     print >> output_fh, ' %s %s %s %s %s' % tuple(row)
-                pass
             else:
                 print >> output_fh, block, 
 
@@ -83,7 +82,6 @@ class AmberLib():
             atomspertinfo_df.loc[i2, 'ptype'] = new_type
         else:
             print '%s does not exist in %s' % (resi_name, self.inputfile)
-            pass
 
     def SetAtomCharge(self, resi_name, atom_name, new_charge):
         if resi_name in self.atoms_dict.keys():
@@ -94,4 +92,3 @@ class AmberLib():
             atoms_df.loc[i, 'charge'] = new_charge
         else:
             print '%s does not exist in %s' % (resi_name, self.inputfile)
-            pass
