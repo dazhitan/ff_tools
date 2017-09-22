@@ -9,9 +9,10 @@ import pandas as pd
 from StringIO import StringIO
 
 def _check_atomtype_match(df, input_types, labels):
-    #assert len(input_types) == len(labels), \
-    #    "The number of input_types has to be the same as that of labels you" \
-    #     " want to match"
+    """
+    Check whether the atomtype combinations in input_types already exists in
+    df. Both the forward and reverse sequence of input_types are checked. 
+    """
     intypesf = input_types
     intypesr = list(reversed(input_types))
     idx_f = df.index
@@ -43,6 +44,9 @@ class AmberDat():
 
 
     def createDat(self):
+        """
+        Create a .dat file from scratch.
+        """
         self.title = 'New AmberDat'
         self.mass_df = pd.DataFrame(columns=['type', 'mass', 'pol'])
         self.stretch_df = pd.DataFrame(columns=['type1', 'type2', 'fc', 'r0'])
@@ -66,6 +70,9 @@ class AmberDat():
         self.end = 'END'
 
     def loadDat(self):
+        """
+        Load a .dat file into the AmberDat object.
+        """
         with open(self.datpath, 'r') as fh:
             raw_string = fh.read()
         blocklist = raw_string.split('\n\n')
@@ -163,6 +170,9 @@ class AmberDat():
         self.end = blocklist[8]
 
     def printDat(self, out_file_path):
+        """
+        Print out an AmberDat object following strict format.
+        """
         out_fh = open(out_file_path, 'w')
         print >> out_fh, self.title
 
@@ -516,6 +526,22 @@ class AmberDat():
         else:
             print "Something is wrong with %s, no improper term set." \
                     % self
+
+    def addVdw(self, atomtype, new_half_rmin, new_epsilon):
+        assert new_half_min >= 0 and new_epsilon >= 0, \
+            'Rmin and epsilon of an atom cannot be negative.'
+        atomtype = atomtype.replace(' ', '')
+        assert 0 < len(atomtype) < 3, \
+            'Atomtype must be an non-empty string with no more than two characters.'
+
+        if atomtype in self.vdw_df.type.values:
+            print "Atomtype %s already exists in %s, no vdw params added." \
+                    % (atomtype, self)
+        else:
+            n = len(self.vdw_df)
+            self.vdw_df.loc[n] = [atomtype, new_half_min, new_epsilon]
+            print "Atomtype %s with half_rmin %.4f epsilon %.4f added to %s." \
+                    % (atomtype, new_half_rmin, new_epsilon, self)
 
     def setVdw(self, atomtype, new_half_rmin, new_epsilon):
         if atomtype in self.vdw_df.type.values:
