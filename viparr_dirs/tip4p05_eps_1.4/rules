@@ -1,0 +1,5 @@
+{
+   "plugins" : ["bonds", "angles", "vdw1", "exclusions", "mass", "virtuals"],
+   "vdw_comb_rule" : "",
+   "info" : ["Vega et al. (2005) J. Chem. Phys. 123, 234505"]
+}

@@ -1,0 +1,6 @@
+[
+   { "type" : "Cl-",  "params" : { "sigma" : 3.512,  "epsilon" : 1.0 },  "memo" : "Cl- from osmotic coefficient optimization" },
+   { "type" : "Na+",  "params" : { "sigma" : 3.400,  "epsilon" : 0.0100 },  "memo" : "Na+ from osmotic coefficient optimization" },
+   { "type" : "K+",  "params" : { "sigma" : 4.736,  "epsilon" : 0.000328 },  "memo" : "K+ Aqvist JPC 1990,94,8021. (adapted)" },
+   { "type" : "Mg2+",  "params" : { "sigma" : 2.77,  "epsilon" : 0.003 },  "memo" : "" }
+]

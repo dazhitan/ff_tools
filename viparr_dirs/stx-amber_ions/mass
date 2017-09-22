@@ -1,0 +1,6 @@
+[
+   { "type" : "Cl-",  "params" : { "amu" : 35.45 },  "memo" : "assumed to be Cl- (ion minus)" },
+   { "type" : "Mg2+",  "params" : { "amu" : 24.305 },  "memo" : "magnesium" },
+   { "type" : "Na+",  "params" : { "amu" : 22.99 },  "memo" : "assumed to be Na+ (ion plus)" },
+   { "type" : "K+",  "params" : { "amu" : 39.1 },  "memo" : "potassium" }
+]
