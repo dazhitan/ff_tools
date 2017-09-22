@@ -407,47 +407,115 @@ class AmberDat():
                                  new_divider, new_fc, new_theta0, 
                                  new_periodicity]
         
+        self._refreshProper(atomtype1, atomtype2, atomtype3, atomtype4)
         print "Proper term %-2s-%-2s-%-2s-%-2s with divider %d fc %.3f" \
               % (atomtype1, atomtype2, atomtype3, atomtype4, 
                  new_divider, new_fc),
         print "theta0 %.1f and periodicity %d added. " \
               % (new_theta0, new_periodicity)
 
-    """
-    def setProper(self, atomtype1, atomtype2, atomtype3, atomtype4, 
-                  new_divider, new_fc, new_theta0, new_periodicity):
-        
-        assert new_periodicity in [x for x in range(-6, 7) if x != 0], \
-                "periodicity of a proper torsion term has to be a non-zero " \
-                "integer between -6 and 6"
-
-        idf, idr = _check_atomtype_match(self.angle_df, 
+    def _refreshProper(self, atomtype1, atomtype2, atomtype3, atomtype4):
+        idf, idr = _check_atomtype_match(self.proper_df, 
                        [atomtype1, atomtype2, atomtype3, atomtype4], 
                        ['type1', 'type2', 'type3', 'type4'])
 
         if len(idf) > 0 and len(idr) == 0:
-            existing_term_df = self.proper_df[idf]
-            if new_periodicity in existing_term_df.periodicity.values:
-                pass
-            else:
-                print "proper term %-2s-%-2s-%-2s-%-2s with periodicity %d" \
-                      % (atomtype1, atomtype2, 
-                         atomtype3, atomtype4, new_periodicity),
-                print "does not exist, no proper term set."
+            for i in idf[:-1]:
+                if self.proper_df.loc[i, 'periodicity'] > 0:
+                    self.proper_df.loc[i, 'periodicity'] *= -1
+            if self.proper_df.loc[idf[-1], 'periodicity'] < 0:
+                self.proper_df.loc[idf[-1], 'periodicity'] *= -1
 
         elif len(idf) == 0 and len(idr) > 0:
-            pass
+            for i in idr[:-1]:
+                if self.proper_df.loc[i, 'periodicity'] > 0:
+                    self.proper_df.loc[i, 'periodicity'] *= -1
+            if self.proper_df.loc[idr[-1], 'periodicity'] < 0:
+                self.proper_df.loc[idr[-1], 'periodicity'] *= -1
 
         elif len(idf) == 0 and len(idr) == 0:
-            print "proper term %-2s-%-2s-%-2s-%-2s or %-2s-%-2s-%-2s-%2s" \
-                  % (atomtype1, atomtype2, atomtype3, atomtype4,
-                     atomtype4, atomtype3, atomtype2, atomtype1),
-            print "does not exist in %s, no proper term set." % self
+            pass
 
         else:
             print "Something is wrong with %s, no proper torsion term set." \
                     % self
-    """
+
+    def addImproper(self, atomtype1, atomtype2, atomtype3, atomtype4, 
+                    new_fc, new_theta0, new_periodicity):
+        assert new_fc >= 0 and new_theta0 >= 0, \
+            "fc and theta0 of an improper term cannot be negative."
+        assert new_periodicity in [x for x in range(-6, 7) if x != 0], \
+                "periodicity of an improper torsion term has to be a non-zero " \
+                "integer between -6 and 6"
+
+        atomtype1 = atomtype1.replace(' ', '')
+        atomtype2 = atomtype2.replace(' ', '')
+        atomtype3 = atomtype3.replace(' ', '')
+        atomtype4 = atomtype4.replace(' ', '')
+        assert 0 < len(atomtype1) < 3 and 0 < len(atomtype2) < 3 and \
+            0 < len(atomtype3) < 3 and 0 < len(atomtype4) < 3, \
+            'Atomtype must be an non-empty string with no more than two characters.'
+
+        idf, _ = _check_atomtype_match(self.improper_df, 
+                       [atomtype1, atomtype2, atomtype3, atomtype4], 
+                       ['type1', 'type2', 'type3', 'type4'])
+
+        if len(idf) == 1:
+            print "Improper term %-2s-%-2s-%-2s-%-2s already exists in %s, no term added." \
+                    % (atomtype1, atomtype2, atomtype3, atomtype4, self)
+
+        elif len(idf) == 0:
+            n = len(self.improper_df)
+            self.improper_df.loc[n] = [atomtype1, atomtype2, atomtype3, atomtype4, 
+                                       new_fc, new_theta0, new_periodicity]
+            print "Improper term %-2s-%-2s-%-2s-%-2s with fc %.1f theta0 %.1f periodicity %d added to %s," \
+                  % (atomtype1, atomtype2, atomtype3, atomtype4, new_fc, 
+                     new_theta0, new_periodicity, self)
+
+        else:
+            print "Something is wrong with %s, no improper term set." \
+                    % self
+
+    def setImproper(self, atomtype1, atomtype2, atomtype3, atomtype4, 
+                    new_fc, new_theta0, new_periodicity):
+        assert new_fc >= 0 and new_theta0 >= 0, \
+            "fc and theta0 of an improper term cannot be negative."
+        assert new_periodicity in [x for x in range(-6, 7) if x != 0], \
+                "periodicity of an improper torsion term has to be a non-zero " \
+                "integer between -6 and 6"
+
+        atomtype1 = atomtype1.replace(' ', '')
+        atomtype2 = atomtype2.replace(' ', '')
+        atomtype3 = atomtype3.replace(' ', '')
+        atomtype4 = atomtype4.replace(' ', '')
+        assert 0 < len(atomtype1) < 3 and 0 < len(atomtype2) < 3 and \
+            0 < len(atomtype3) < 3 and 0 < len(atomtype4) < 3, \
+            'Atomtype must be an non-empty string with no more than two characters.'
+
+        idf, _ = _check_atomtype_match(self.improper_df, 
+                       [atomtype1, atomtype2, atomtype3, atomtype4], 
+                       ['type1', 'type2', 'type3', 'type4'])
+
+        if len(idf) == 1:
+            self.improper_df.loc[idf, 'fc'] = new_fc
+            self.improper_df.loc[idf, 'theta0'] = new_theta0
+            self.improper_df.loc[idf, 'periodicity'] = new_periodicity
+            print "fc of improper term %-2s-%-2s-%-2s-%-2s set to %.1f" \
+                    % (atomtype1, atomtype2, atomtype3, atomtype4, new_fc)
+            print "theta0 of improper term %-2s-%-2s-%-2s-%-2s set to %.1f" \
+                    % (atomtype1, atomtype2, atomtype3, atomtype4, new_theta0)
+            print "periodicity of improper term %-2s-%-2s-%-2s-%-2s set to %d" \
+                    % (atomtype1, atomtype2, atomtype3, atomtype4, new_periodicity)
+
+        elif len(idf) == 0:
+            print "Improper term %-2s-%-2s-%-2s-%-2s or %-2s-%-2s-%-2s-%-2s does not exist in %s," \
+                  % (atomtype1, atomtype2, atomtype3, atomtype4,
+                     atomtype4, atomtype3, atomtype2, atomtype1, self),
+            print "no improper term set." 
+
+        else:
+            print "Something is wrong with %s, no improper term set." \
+                    % self
 
     def setVdw(self, atomtype, new_half_rmin, new_epsilon):
         if atomtype in self.vdw_df.type.values:
