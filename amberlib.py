@@ -13,9 +13,16 @@ class AmberLib(IterableUserDict):
     """
     A class describing the .lib file in AmberFFCombo.
     """
-    def loadLib(self, lib_file_path):
+    def __init__(self, lib_file_path):
+        IterableUserDict.__init__(self)
         self.libpath = lib_file_path
+        self.title = os.path.basename(self.libpath)
+        self.loadLib()
 
+    def __repr__(self):
+        return '<AmberLib %s>' % self.title
+
+    def loadLib(self):
         with open(self.libpath, 'r') as fh:
             raw_string = fh.read()
         blocklist = raw_string.split('!')
@@ -52,86 +59,150 @@ class AmberLib(IterableUserDict):
         for r in self.residue_list:
             print >> fh, '"%s"' % r
 
+        for r in self.residue_list:
 
+            print >> fh, '!entry.%s.unit.atoms table' % r,
+            for c in self.data[r]['atoms'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['atoms'].iterrows():
+                print >> fh, '"%s" "%s" %d %d %d %d %d %f' % tuple(row)
 
-        """
-        self.atoms_dict = dict()
-        self.atomspertinfo_dict = dict()
-        entry_pattern = re.compile("entry\.(\w+)\.unit\.(\w+)")
+            print >> fh, '!entry.%s.unit.atomspertinfo table' % r,
+            for c in self.data[r]['atomspertinfo'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['atomspertinfo'].iterrows():
+                print >> fh, '"%s" "%s" %d %d %f' % tuple(row)
 
-        with open(self.inputfile, 'r') as fh:
-            self._raw_string = fh.read()
-            self.work_list = self._raw_string.split('!')
-
-        self.work_list = filter(None, self.work_list) # Filter out empty strings
-
-        self.atoms_edit_idx = []
-        self.atomspertinfo_edit_idx = []
-        for n, block in enumerate(self.work_list):
-            entry_match = entry_pattern.match(block)
-            if entry_match:
-                self.work_list[n] = '!' + block
-                resi_name, entry_name = entry_match.groups()
-                if entry_name == 'atoms':
-                    self.atoms_edit_idx.append(n)
-                    self.atoms_dict[resi_name] = pd.DataFrame(
-                        columns=['name', 'type', 'typex', 'resx', 'flag', 
-                                 'seq', 'elmnt', 'charge'])
-                    atom_list = block.split('\n')[1:-1]
-                    for m, al in enumerate(atom_list):
-                        self.atoms_dict[resi_name].loc[m] = al.split(' ')[1:]
-
-                elif entry_name == 'atomspertinfo':
-                    self.atomspertinfo_edit_idx.append(n)
-                    self.atomspertinfo_dict[resi_name] = pd.DataFrame(
-                        columns=['pname', 'ptype', 'ptypex', 'pelmnt', 'pchg'])
-                    atom_list = block.split('\n')[1:-1]
-                    for m, al in enumerate(atom_list):
-                        self.atomspertinfo_dict[resi_name].loc[m] = al.split(' ')[1:]
+            for n, elmnt in enumerate(self.data[r]['boundbox']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
                 else:
-                    continue
-            else:
-                self.work_list[n] = '!!' + block
+                    print >> fh, '%f' % float(elmnt) 
 
-    def PrintLib(self, output_fh):
-        for n, block in enumerate(self.work_list):
-            if n in self.atoms_edit_idx:
-                output_lines = block.split('\n')[:-1]
-                print >> output_fh, output_lines[0]
-                resname = re.search("entry\.(\w+)\.unit", block).groups()[0]
-                resi_params = self.atoms_dict[resname]
-                for _, row in resi_params.iterrows():
-                    print >> output_fh, ' %s %s %s %s %s %s %s %s' % tuple(row)
-            elif n in self.atomspertinfo_edit_idx:
-                output_lines = block.split('\n')[:-1]
-                print >> output_fh, output_lines[0]
-                resname = re.search("entry\.(\w+)\.unit", block).groups()[0]
-                resi_params = self.atomspertinfo_dict[resname]
-                for _, row in resi_params.iterrows():
-                    print >> output_fh, ' %s %s %s %s %s' % tuple(row)
-            else:
-                print >> output_fh, block, 
+            for n, elmnt in enumerate(self.data[r]['childsequence']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
+                else:
+                    print >> fh, '%d' % int(elmnt) 
 
-    def SetAtomType(self, resi_name, atom_name, new_type):
-        if resi_name in self.atoms_dict.keys():
-            atoms_df = self.atoms_dict[resi_name]
-            atomspertinfo_df = self.atomspertinfo_dict[resi_name]
+            for n, elmnt in enumerate(self.data[r]['connect']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
+                else:
+                    print >> fh, '%d' % int(elmnt) 
 
-            i1 = atoms_df[atoms_df.name==atom_name].index
-            i2 = atomspertinfo_df[atomspertinfo_df.pname==atom_name].index
+            print >> fh, '!entry.%s.unit.connectivity table' % r,
+            for c in self.data[r]['connectivity'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['connectivity'].iterrows():
+                print >> fh, '%d %d %d' % tuple(row)
 
-            atoms_df.loc[i1, 'type'] = new_type
-            atomspertinfo_df.loc[i2, 'ptype'] = new_type
+            print >> fh, '!entry.%s.unit.hierarchy table' % r,
+            for c in self.data[r]['hierarchy'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['hierarchy'].iterrows():
+                print >> fh, '"%s" %d "%s" %d' % tuple(row)
+
+            for n, elmnt in enumerate(self.data[r]['name']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
+                else:
+                    print >> fh, '"%s"' % elmnt 
+
+            print >> fh, '!entry.%s.unit.positions table' % r,
+            for c in self.data[r]['positions'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['positions'].iterrows():
+                print >> fh, '%f %f %f' % tuple(row)
+
+            print >> fh, '!entry.%s.unit.residueconnect table' % r,
+            for c in self.data[r]['residueconnect'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['residueconnect'].iterrows():
+                print >> fh, '%d %d %d %d %d %d' % tuple(row)
+
+            print >> fh, '!entry.%s.unit.residues table' % r,
+            for c in self.data[r]['residues'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['residues'].iterrows():
+                print >> fh, '"%s", %d %d %d "%s" %d' % tuple(row)
+
+            for n, elmnt in enumerate(self.data[r]['residuesPdbSequenceNumber']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
+                else:
+                    print >> fh, '%d' % int(elmnt) 
+
+            for n, elmnt in enumerate(self.data[r]['solventcap']):
+                if n == 0:
+                    print >> fh, '!%s' % elmnt
+                else:
+                    print >> fh, '%f' % float(elmnt) 
+
+            print >> fh, '!entry.%s.unit.velocities table' % r,
+            for c in self.data[r]['velocities'].columns:
+                print >> fh, ' %s' % c, 
+            print >> fh, ''
+            for _, row in self.data[r]['velocities'].iterrows():
+                print >> fh, '%f %f %f' % tuple(row)
+
+        print "Printed %s to %s" % (self, out_file_path)
+
+    def setAtomType(self, resname, atomname, newtype):
+        resname = resname.replace(' ', '')
+        atomname = atomname.replace(' ', '')
+        newtype = newtype.replace(' ', '')
+        assert 0 < len(newtype) < 3, \
+            "Atomtype must be a non-empty string with no more than two characters."
+        if resname in self.data.keys():
+            atm_df = self.data[resname]['atoms']
+            atm_idx = atm_df.index[atm_df['str name'] == atomname]
+            if len(atm_idx) == 0:
+                print '%s does not exist in residue %s in %s, no atomtype set' \
+                    % (atomname, resname, self)
+                return
+            atm_df.loc[atm_idx, 'str type'] = newtype
+
+            atmpert_df = self.data[resname]['atomspertinfo']
+            atmpert_idx = atmpert_df.index[atmpert_df['str pname'] == atomname]
+            atmpert_df.loc[atmpert_idx, 'str ptype'] = newtype
+            print 'The type of %s in residue %s is set to be %s' \
+                % (atomname, resname, newtype)
         else:
-            print '%s does not exist in %s' % (resi_name, self.inputfile)
+            print '%s does not exist in %s, no atomtype set' % (resname, self)
 
-    def SetAtomCharge(self, resi_name, atom_name, new_charge):
-        if resi_name in self.atoms_dict.keys():
+    def setAtomCharge(self, resname, atomname, newcharge):
+        resname = resname.replace(' ', '')
+        atomname = atomname.replace(' ', '')
+        assert isinstance(newcharge, (float, int)), \
+            "Charge must be a number."
+        if resname in self.data.keys():
+            atm_df = self.data[resname]['atoms']
+            atm_idx = atm_df.index[atm_df['str name'] == atomname]
+            if len(atm_idx) == 0:
+                print '%s does not exist in residue %s in %s, no charge set' \
+                    % (atomname, resname, self)
+                return
+            atm_df.loc[atm_idx, 'dbl chg'] = newcharge
 
-            atoms_df = self.atoms_dict[resi_name]
-
-            i = atoms_df[atoms_df.name==atom_name].index
-            atoms_df.loc[i, 'charge'] = new_charge
+            print 'The charge of %s in residue %s is set to be %f' \
+                % (atomname, resname, newcharge)
         else:
-            print '%s does not exist in %s' % (resi_name, self.inputfile)
-        """
+            print '%s does not exist in %s, no atomtype set' % (resname, self)
+
+    def calcNetCharge(self, resname):
+        resname = resname.replace(' ', '')
+        if resname in self.data.keys():
+            atm_df = self.data[resname]['atoms']
+            net_charge = atm_df['dbl chg'].sum()
+            return net_charge
+        else:
+            print '%s does not exist in %s, no net charge calculated' % (resname, self)
+            return None
