@@ -6,13 +6,55 @@
 import os, re
 import pandas as pd
 
-class AmberLib():
+from UserDict import IterableUserDict
+from StringIO import StringIO
 
-    def __init__(self, input_lib_file):
-        self.inputfile = input_lib_file
-        self.LoadLib()
+class AmberLib(IterableUserDict):
+    """
+    A class describing the .lib file in AmberFFCombo.
+    """
+    def loadLib(self, lib_file_path):
+        self.libpath = lib_file_path
 
-    def LoadLib(self):
+        with open(self.libpath, 'r') as fh:
+            raw_string = fh.read()
+        blocklist = raw_string.split('!')
+        blocklist = filter(None, blocklist)
+        self.blocklist = blocklist
+
+        self.residue_list = blocklist[0].split('\n')[1:-1]
+        self.residue_list = [x.replace(' ', '') for x in self.residue_list]
+        self.residue_list = [x.replace('"', '') for x in self.residue_list]
+
+        for resname in self.residue_list:
+            self.data[resname] = dict()
+
+        header_pattern = re.compile("entry\.(\w+)\.unit\.(\w+)")
+        for block in blocklist[1:]:
+            resname, entryname = \
+                header_pattern.match(block).groups()
+            temp_list = block.split('\n')[0].split(' ')
+            if temp_list[1] == 'table':
+                header_string_list = block.split('\n')[0].split('  ')
+                #data_names = [re.search('\s(\w+)', x).groups()[0] for x in
+                #              header_string_list[1:]]
+                block_csv = StringIO(block)
+                info_df = pd.read_csv(block_csv, sep='\s+', skiprows=[0], 
+                                      keep_default_na=False,
+                                      names=header_string_list[1:])
+                self.data[resname][entryname] = info_df
+            if temp_list[1] == 'array' or temp_list[1] == 'single':
+                self.data[resname][entryname] = block.split('\n')[:-1]
+
+    def printLib(self, out_file_path):
+        fh = open(out_file_path, 'w')
+        print >> fh, '!!index array str'
+        for r in self.residue_list:
+            print >> fh, '"%s"' % r
+
+
+
+        """
         self.atoms_dict = dict()
         self.atomspertinfo_dict = dict()
         entry_pattern = re.compile("entry\.(\w+)\.unit\.(\w+)")
@@ -92,3 +134,4 @@ class AmberLib():
             atoms_df.loc[i, 'charge'] = new_charge
         else:
             print '%s does not exist in %s' % (resi_name, self.inputfile)
+        """
