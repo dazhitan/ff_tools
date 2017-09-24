@@ -24,6 +24,24 @@ class DesmondFF(IterableUserDict):
             with open(file, 'r') as fh:
                 json_object = json.load(fh)
                 self.data[filename] = json_object
+        self._cleantype()
+
+    def _cleantype(self):
+        for filename, json_object in self.data.iteritems():
+            if isinstance(json_object, list):
+                for elmnt in json_object:
+                    if not isinstance(elmnt['type'], (tuple, list)):
+                        elmnt['type'] = elmnt['type'].split(' ')
+            else:
+                continue
+
+    def _find_atomtype_inconsistency(self):
+        for filename in self.data.keys():
+            if 'template' in filename:
+                for resname, resparam in self.data[filename].iteritems():
+                    for atom in resparam['atoms']:
+                        if atom[-1][0] != atom[-1][1]:
+                            print resname, atom[0], atom[-1][0], atom[-1][1]
 
 """
 def lookup_lj_param(nonbonded_type, vdw_json):

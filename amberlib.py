@@ -57,7 +57,7 @@ class AmberLib(IterableUserDict):
         fh = open(out_file_path, 'w')
         print >> fh, '!!index array str'
         for r in self.residue_list:
-            print >> fh, '"%s"' % r
+            print >> fh, ' "%s"' % r
 
         for r in self.residue_list:
 
@@ -66,92 +66,96 @@ class AmberLib(IterableUserDict):
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['atoms'].iterrows():
-                print >> fh, '"%s" "%s" %d %d %d %d %d %f' % tuple(row)
+                print >> fh, ' "%s" "%s" %d %d %d %d %d %f' % tuple(row)
 
             print >> fh, '!entry.%s.unit.atomspertinfo table' % r,
             for c in self.data[r]['atomspertinfo'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['atomspertinfo'].iterrows():
-                print >> fh, '"%s" "%s" %d %d %f' % tuple(row)
+                print >> fh, ' "%s" "%s" %d %d %.1f' % tuple(row)
 
             for n, elmnt in enumerate(self.data[r]['boundbox']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
+                elif n > 1:
+                    print >> fh, ' %.1f' % float(elmnt) 
                 else:
-                    print >> fh, '%f' % float(elmnt) 
+                    print >> fh, ' %f' % float(elmnt) 
 
             for n, elmnt in enumerate(self.data[r]['childsequence']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
                 else:
-                    print >> fh, '%d' % int(elmnt) 
+                    print >> fh, ' %d' % int(elmnt) 
 
             for n, elmnt in enumerate(self.data[r]['connect']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
                 else:
-                    print >> fh, '%d' % int(elmnt) 
+                    print >> fh, ' %d' % int(elmnt) 
 
             print >> fh, '!entry.%s.unit.connectivity table' % r,
             for c in self.data[r]['connectivity'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['connectivity'].iterrows():
-                print >> fh, '%d %d %d' % tuple(row)
+                print >> fh, ' %d %d %d' % tuple(row)
 
             print >> fh, '!entry.%s.unit.hierarchy table' % r,
             for c in self.data[r]['hierarchy'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['hierarchy'].iterrows():
-                print >> fh, '"%s" %d "%s" %d' % tuple(row)
+                print >> fh, ' "%s" %d "%s" %d' % tuple(row)
 
             for n, elmnt in enumerate(self.data[r]['name']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
                 else:
-                    print >> fh, '"%s"' % elmnt 
+                    print >> fh, ' %s' % elmnt.replace(' ', '') 
 
             print >> fh, '!entry.%s.unit.positions table' % r,
             for c in self.data[r]['positions'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['positions'].iterrows():
-                print >> fh, '%f %f %f' % tuple(row)
+                print >> fh, ' %f %f %.6e' % tuple(row)
 
             print >> fh, '!entry.%s.unit.residueconnect table' % r,
             for c in self.data[r]['residueconnect'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['residueconnect'].iterrows():
-                print >> fh, '%d %d %d %d %d %d' % tuple(row)
+                print >> fh, ' %d %d %d %d %d %d' % tuple(row)
 
             print >> fh, '!entry.%s.unit.residues table' % r,
             for c in self.data[r]['residues'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['residues'].iterrows():
-                print >> fh, '"%s", %d %d %d "%s" %d' % tuple(row)
+                print >> fh, ' "%s" %d %d %d "%s" %d' % tuple(row)
 
             for n, elmnt in enumerate(self.data[r]['residuesPdbSequenceNumber']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
                 else:
-                    print >> fh, '%d' % int(elmnt) 
+                    print >> fh, ' %d' % int(elmnt) 
 
             for n, elmnt in enumerate(self.data[r]['solventcap']):
                 if n == 0:
                     print >> fh, '!%s' % elmnt
+                elif n > 2:
+                    print >> fh, ' %.1f' % float(elmnt) 
                 else:
-                    print >> fh, '%f' % float(elmnt) 
+                    print >> fh, ' %f' % float(elmnt) 
 
             print >> fh, '!entry.%s.unit.velocities table' % r,
             for c in self.data[r]['velocities'].columns:
                 print >> fh, ' %s' % c, 
             print >> fh, ''
             for _, row in self.data[r]['velocities'].iterrows():
-                print >> fh, '%f %f %f' % tuple(row)
+                print >> fh, ' %.1f %.1f %.1f' % tuple(row)
 
         print "Printed %s to %s" % (self, out_file_path)
 

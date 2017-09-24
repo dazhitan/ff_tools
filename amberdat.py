@@ -446,8 +446,14 @@ class AmberDat():
             pass
 
         else:
-            print "Something is wrong with %s, no proper torsion term set." \
-                    % self
+            for i in idf[:-1]:
+                if self.proper_df.loc[i, 'periodicity'] > 0:
+                    self.proper_df.loc[i, 'periodicity'] *= -1
+            if self.proper_df.loc[idf[-1], 'periodicity'] < 0:
+                self.proper_df.loc[idf[-1], 'periodicity'] *= -1
+            #print "Something is wrong with %s, no proper torsion term set." \
+            #        % self
+            print "Symmetrical term."
 
     def addImproper(self, atomtype1, atomtype2, atomtype3, atomtype4, 
                     new_fc, new_theta0, new_periodicity):
@@ -527,7 +533,7 @@ class AmberDat():
                     % self
 
     def addVdw(self, atomtype, new_half_rmin, new_epsilon):
-        assert new_half_min >= 0 and new_epsilon >= 0, \
+        assert new_half_rmin >= 0 and new_epsilon >= 0, \
             'Rmin and epsilon of an atom cannot be negative.'
         atomtype = atomtype.replace(' ', '')
         assert 0 < len(atomtype) < 3, \
@@ -538,7 +544,7 @@ class AmberDat():
                     % (atomtype, self)
         else:
             n = len(self.vdw_df)
-            self.vdw_df.loc[n] = [atomtype, new_half_min, new_epsilon]
+            self.vdw_df.loc[n] = [atomtype, new_half_rmin, new_epsilon]
             print "Atomtype %s with half_rmin %.4f epsilon %.4f added to %s." \
                     % (atomtype, new_half_rmin, new_epsilon, self)
 
